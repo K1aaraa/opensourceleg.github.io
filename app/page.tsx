@@ -29,7 +29,7 @@ export default function Home() {
           <LottieAnimation />
           
           {/* Main headline */}
-          <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl mb-3 sm:mb-4 font-semibold max-w-5xl leading-tight">
+          <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl mb-3 sm:mb-4 max-w-5xl leading-tight heading">
             <span className="text-black">Open-Source Leg</span>{" "}
           </h1>
 
@@ -101,7 +101,7 @@ export default function Home() {
                 </svg>
                 
                 <blockquote className="text-white py-4 sm:py-8">
-                  <p className="text-lg sm:text-xl lg:text-2xl font-light leading-relaxed mb-6 sm:mb-8 text-justify">
+                  <p className="text-lg sm:text-xl lg:text-2xl  leading-relaxed mb-6 sm:mb-8 text-justify">
                     We want to give people access to the tools needed to overcome the barriers preventing these technologies from impacting the lives of people with disabilities.
                   </p>
                   <footer className="text-white/60 text-base sm:text-lg">
@@ -120,7 +120,7 @@ export default function Home() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
           <div className="text-center space-y-6 sm:space-y-8">
             {/* Centered heading */}
-            <h3 className="text-xl sm:text-2xl md:text-3xl font-light font-serif px-2">
+            <h3 className="text-xl sm:text-2xl md:text-3xl  font-serif px-2">
               Trusted by <span className="px-1 sm:px-2 text-3xl sm:text-4xl md:text-5xl font-semibold text-[var(--light-green)]">25+</span> research institutions worldwide
             </h3>
 
@@ -168,8 +168,8 @@ export default function Home() {
         <div className="max-w-7xl mx-auto">
           {/* Main headline */}
           <div className="text-center mb-12 sm:mb-16">
-            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-light mb-6 sm:mb-8">
-                <span className="relative font-medium italic">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl mb-6 sm:mb-8">
+                <span className="relative heading">
                   Leverage
                   <svg 
                     className="absolute -bottom-1 left-0 w-full h-2 sm:h-3" 
@@ -239,8 +239,8 @@ export default function Home() {
           {/* Left Content */}
           <div className="space-y-6 sm:space-y-8 flex flex-col gap-3 sm:gap-4 justify-center">
             {/* Main headline */}
-            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-light leading-tight">
-              Built for <span className="relative text-[var(--light-green)] italic font-medium">engineers
+            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl  leading-tight">
+              Built for <span className="relative text-[var(--light-green)] heading font-medium">engineers
                 <svg 
                   className="absolute -bottom-1 left-0 w-full h-2 sm:h-3" 
                   viewBox="0 0 200 12" 
@@ -305,8 +305,8 @@ export default function Home() {
             {/* Right Content - Description */}
             <div className="space-y-6 sm:space-y-8 flex flex-col gap-3 sm:gap-4 justify-center">
               {/* Main headline */}
-              <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-light leading-tight">
-                Built for <span className="relative text-[var(--light-blue)] italic font-medium">developers
+              <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl  leading-tight">
+                Built for <span className="relative text-[var(--light-blue)] heading font-medium">developers
                   <svg 
                     className="absolute -bottom-1 left-0 w-full h-2 sm:h-3" 
                     viewBox="0 0 200 12" 
@@ -367,8 +367,8 @@ export default function Home() {
           {/* Left Content */}
           <div className="space-y-6 sm:space-y-8 flex flex-col gap-3 sm:gap-4 justify-center">
             {/* Main headline */}
-            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-light leading-tight">
-              Built for <span className="relative text-[var(--light-green)] italic font-medium">researchers
+            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl  leading-tight">
+              Built for <span className="relative text-[var(--light-green)] heading font-medium">researchers
                 <svg 
                   className="absolute -bottom-1 left-0 w-full h-2 sm:h-3" 
                   viewBox="0 0 200 12" 
@@ -444,9 +444,9 @@ export default function Home() {
         <div className="max-w-7xl mx-auto">
           {/* Main headline */}
           <div className="text-center mb-12 sm:mb-16">
-            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-light mb-6 sm:mb-8">
+            <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl  mb-6 sm:mb-8">
               Built and tested by the{" "}
-                <span className="relative font-medium italic">
+                <span className="relative font-medium heading">
                   Community
                   <svg 
                     className="absolute -bottom-1 left-0 w-full h-2 sm:h-3" 
@@ -520,8 +520,8 @@ export default function Home() {
             <div className="grid lg:grid-cols-2 gap-8 sm:gap-12 items-center">
               {/* Left Content */}
               <div className="space-y-6 sm:space-y-8">
-                <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-light text-white">
-                  <span className="relative font-medium italic">
+                <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl  text-white">
+                  <span className="relative font-medium heading">
                     Join
                     <svg 
                       className="absolute -bottom-1 left-0 w-full h-2 sm:h-3" 
