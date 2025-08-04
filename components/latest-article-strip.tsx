@@ -6,13 +6,21 @@ export function LatestArticleStrip() {
   const posts = getAllPosts()
   
   if (posts.length === 0) {
-    return null
+    return (
+      <div className="bg-[var(--light-blue)] border-b border-gray-200 ">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6">
+          <div className="flex items-center justify-between py-6">
+            {/* Empty content when no posts */}
+          </div>
+        </div>
+      </div>
+    )
   }
 
   const latestPost = posts[0] // Posts are already sorted by date (newest first)
 
   return (
-    <div className="bg-[var(--light-blue)] border-b border-gray-200">
+    <div className="bg-[var(--light-blue)] border-b border-gray-200 ">
       <div className="max-w-6xl mx-auto px-4 sm:px-6">
         <div className="flex items-center justify-between py-3">
           <div className="flex items-center gap-3 min-w-0 flex-1">
