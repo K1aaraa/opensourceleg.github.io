@@ -51,12 +51,20 @@ describe('LatestArticleStrip Component', () => {
     expect(screen.getByText('LATEST')).toBeInTheDocument()
   })
 
-  it('renders null when no posts exist', () => {
+  it('renders empty container when no posts exist', () => {
     vi.mocked(getAllPosts).mockReturnValue([])
     
     const { container } = render(<LatestArticleStrip />)
     
-    expect(container.firstChild).toBeNull()
+    // Should render a container with the correct styling but no content
+    const stripContainer = container.firstChild as HTMLElement
+    expect(stripContainer).toBeInTheDocument()
+    expect(stripContainer).toHaveClass('bg-[var(--light-blue)]')
+    expect(stripContainer).toHaveClass('border-b')
+    
+    // Should not have any article content
+    expect(screen.queryByText('LATEST')).not.toBeInTheDocument()
+    expect(screen.queryByText('View all articles')).not.toBeInTheDocument()
   })
 
   it('creates correct link to the latest article', () => {
