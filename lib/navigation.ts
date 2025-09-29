@@ -28,11 +28,12 @@ export const navigationConfig: NavigationSection[] = [
     type: "link",
     href: "/about"
   },
-  {
-    title: "Articles",
-    type: "link",
-    href: "/articles"
-  },
+  // TODO: Add this back once we have enough articles
+  // {
+  //   title: "Articles",
+  //   type: "link",
+  //   href: "/articles"
+  // },
   {
     title: "Hardware",
     type: "featured",

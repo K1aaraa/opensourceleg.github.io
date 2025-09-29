@@ -18,6 +18,18 @@ export function LatestArticleStrip() {
   }
 
   const latestPost = posts[0] // Posts are already sorted by date (newest first)
+  const ENABLE_ARTICLES = false; // Toggle this to enable/disable the latest article strip
+
+  if (!ENABLE_ARTICLES) {
+    return (
+      <div className="bg-[var(--light-blue)] border-b border-gray-200 ">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6">
+          <div className="py-6">
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="bg-[var(--light-blue)] border-b border-gray-200 ">
