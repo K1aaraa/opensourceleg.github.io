@@ -200,126 +200,144 @@ body {
     --scroll-duration: 45s;
   }
 
-  /* Mermaid mindmap custom styles */
-  .mermaid-container {
-    background: transparent;
-    border-radius: 0.75rem;
+  /* Ecosystem tree styles */
+  .ecosystem-tree {
+    width: 100%;
+    max-width: 900px;
+    margin: 0 auto;
+    position: relative;
+    overflow: visible;
   }
-  
-  .mermaid-container svg {
-    max-width: 100%;
+
+  .ecosystem-tree svg {
+    width: 100%;
     height: auto;
-    background: transparent;
-  }
-  
-  /* Override Mermaid's default colors with distinct group colors */
-  
-
-  
-  /* Root node - Dark Blue */
-  #ecosystem-mindmap .section-root rect,
-  #ecosystem-mindmap .section-root circle,
-  #ecosystem-mindmap .section--1 rect,
-  #ecosystem-mindmap .section--1 circle {
-    fill: var(--black) !important;
+    overflow: visible;
   }
 
-  #ecosystem-mindmap .section-root text,
-  #ecosystem-mindmap .section--1 text {
-    fill: var(--white) !important;
+  .tree-branch {
+    stroke: var(--border);
+    stroke-width: 2;
+    fill: none;
+    opacity: 0.6;
   }
 
-  /* Hardware group - Blue shades */
-  #ecosystem-mindmap .section-0 rect,
-  #ecosystem-mindmap .section-0 circle {
-    fill: #8594E8 !important; /* Slightly darker blue */
-  }  
-
-  
-  /* Hardware group - Blue shades */
-  #ecosystem-mindmap .section-1 rect,
-  #ecosystem-mindmap .section-1 circle {
-    fill: #9EADCE !important; /* Slightly darker blue */
-  }
-  
-  /* Section 2 - Light purple-blue */
-  #ecosystem-mindmap .section-2 rect,
-  #ecosystem-mindmap .section-2 circle {
-    fill: #B6C6B3 !important;
-  }
-  
-  /* Section 3 - Light blue-green */
-  #ecosystem-mindmap .section-3 rect,
-  #ecosystem-mindmap .section-3 circle {
-    fill: #CFDE99 !important;
-  }
-  
-  /* Section 4 - Light green */
-  #ecosystem-mindmap .section-4 rect,
-  #ecosystem-mindmap .section-4 circle {
-    fill: #D3E393 !important;
-  }
-  
-  /* Ensure all nodes have black borders and rounded corners */
-  #ecosystem-mindmap rect,
-  #ecosystem-mindmap circle {
-    stroke: var(--black) !important;
-    stroke-width: 1px !important;
-  }
-  
-  /* Add rounded corners to all mindmap rectangles */
-  #ecosystem-mindmap rect {
-    rx: 12 !important;
-    ry: 12 !important;
-  }
-  
-  /* Section-specific edge colors to match node colors */
-  #ecosystem-mindmap .section-edge-0 {
-    stroke: #8594E8 !important;
-  }
-  
-  #ecosystem-mindmap .section-edge-1 {
-    stroke: #9EADCE !important;
-  }
-  
-  #ecosystem-mindmap .section-edge-2 {
-    stroke: #B6C6B3 !important;
-  }
-  
-  #ecosystem-mindmap .section-edge-3 {
-    stroke: #CFDE99 !important;
-  }
-  
-  #ecosystem-mindmap .section-edge-4 {
-    stroke: #D3E393 !important;
-  }
-  
-  /* Ensure text is readable */
-  #ecosystem-mindmap text {
-    font-family: var(--font-sans) !important;
-    font-weight: 500 !important;
-    fill: #1E1C19 !important;
-  }
-  
-  /* Clickable nodes hover effect */
-  #ecosystem-mindmap .clickable-node {
+  .tree-node {
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.3s ease;
   }
 
-  #ecosystem-mindmap .clickable-node:hover rect,
-  #ecosystem-mindmap .clickable-node:hover circle {
-    stroke-width: 2px !important;
-    fill: var(--light-green) !important;
-    transition: all 0.2s ease;
-    box-shadow: 0 0 10px rgba(226, 239, 182, 0.4);
+  .tree-node:hover .node-circle {
+    transform: scale(1.1);
+    filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.2));
   }
-  
+
+  .tree-node:hover .node-text {
+    font-weight: 600;
+  }
+
+  .node-circle {
+    transition: all 0.3s ease;
+    stroke: var(--border);
+    stroke-width: 2;
+  }
+
+  .root-node .node-circle {
+    fill: var(--primary);
+    stroke: var(--primary);
+    stroke-width: 3;
+  }
+
+  .root-node .node-text {
+    fill: white;
+    font-weight: 700;
+    font-size: 14px;
+    text-anchor: middle;
+    dominant-baseline: central;
+    font-family: var(--font-sans);
+  }
+
+  .branch-node .node-text {
+    fill: var(--foreground);
+    font-weight: 600;
+    font-size: 12px;
+    text-anchor: middle;
+    dominant-baseline: central;
+    font-family: var(--font-sans);
+  }
+
+  .tooltip {
+    position: absolute;
+    background: var(--popover);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    z-index: 1000;
+    max-width: 250px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+  }
+
+  .tooltip.visible {
+    opacity: 1;
+  }
+
+  .tooltip-title {
+    font-family: var(--font-heading);
+    font-weight: 600;
+    font-size: 16px;
+    color: var(--foreground);
+    margin-bottom: 4px;
+  }
+
+  .tooltip-description {
+    font-size: 13px;
+    color: var(--muted-foreground);
+    margin-bottom: 8px;
+    line-height: 1.4;
+  }
+
+  .tooltip-tools {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .tooltip-tool {
+    font-size: 12px;
+    color: var(--foreground);
+    padding: 2px 0;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  .tooltip-tool::before {
+    content: '•';
+    color: var(--primary);
+    font-weight: bold;
+  }
+
   /* Responsive adjustments */
   @media (max-width: 768px) {
-    .mermaid-container svg {
-      transform: scale(0.8);
-      transform-origin: center;
+    .ecosystem-tree {
+      max-width: 100%;
+      padding: 0 10px;
+    }
+
+    .root-node .node-text {
+      font-size: 16px;
+    }
+
+    .branch-node .node-text {
+      font-size: 12px;
+    }
+
+    .tooltip {
+      max-width: 200px;
+      padding: 10px;
     }
   }
 

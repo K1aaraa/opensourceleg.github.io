@@ -1,7 +1,7 @@
 import { Button } from "@/components/ui/button"
 import { Users, BookOpen, ExternalLink, Code, Building2, MapPin, ArrowDown, Settings, ArrowUpRight, ArrowRight } from "lucide-react"
 import { PageHero } from "@/components/page-hero"
-import EcosystemFlow from "@/components/ecosystem-flow"
+import { toolPanels } from "@/lib/assets"
 import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import Image from "next/image"
 import { team } from "@/lib/team"
@@ -78,7 +78,7 @@ export default function About() {
       </div>
 
       {/* Our Solution */}
-      <div className="py-16 sm:py-20 px-4 sm:px-6">
+      <div className="py-16 sm:py-24 px-4 sm:px-6">
         <div className="max-w-7xl mx-auto">
           <div className="text-center mb-12 sm:mb-16">
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-light mb-6 sm:mb-8">
@@ -108,8 +108,42 @@ export default function About() {
             </p>
           </div>
 
-          {/* Ecosystem Flow Chart */}
-          <EcosystemFlow />
+          {/* Tool panels */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 max-w-7xl mx-auto">
+            {toolPanels.map((tool) => {
+              const IconComponent = tool.icon
+              return (
+                <a 
+                  key={tool.id}
+                  href={tool.href}
+                  target="_blank"
+                  className="group bg-white rounded-2xl sm:rounded-3xl p-6 sm:p-8 h-64 sm:h-80 flex flex-col justify-between border border-[var(--black)] hover:shadow-xl transition-all duration-300 cursor-pointer"
+                >
+                  <div className="flex-1 flex items-center justify-center relative">
+                    <IconComponent 
+                      className="w-16 h-16 text-[var(--black)] group-hover:scale-110 group-hover:text-[var(--light-blue)] transition-transform duration-300" 
+                      strokeWidth={1.0}
+                    />
+                    <div className="absolute top-1/2 left-1/2 transform translate-x-2 translate-y-2 group-hover:scale-110 transition-transform duration-300">
+                      <div className="bg-white rounded-full p-1.5 shadow-sm border border-gray-100">
+                        <Image 
+                          src={tool.logo}
+                          alt={`${tool.title} logo`}
+                          width={32}
+                          height={32}
+                          className="w-8 h-8"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                  <div className="text-center">
+                    <h3 className="text-lg sm:text-xl font-semibold text-gray-900 mb-2">{tool.title}</h3>
+                    <p className="text-gray-600 text-sm leading-relaxed max-md:hidden">{tool.description}</p>
+                  </div>
+                </a>
+              )
+            })}
+          </div>
         </div>
       </div>
 
