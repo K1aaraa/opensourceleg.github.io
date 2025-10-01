@@ -28,7 +28,7 @@ export default function RootLayout({
   return (
     <html lang="en" className={`scroll-smooth ${geist.variable} ${raveo.variable}`}>
       <body
-        className={`${geist.className} antialiased pt-20`}
+        className={`${geist.className} antialiased pt-24`}
       >
         <Navbar />
         {children}

@@ -22,12 +22,12 @@ export default function Home() {
   return (
     <div className="">
       {/* Hero Section */}
-      <div className="min-h-screen relative overflow-hidden">
-        {/* Main content */}
-        <main className="relative z-10 flex flex-col items-center justify-center min-h-screen px-4 sm:px-6 text-center -mt-[20%] md:-mt-[8%]">
+      <div className="flex flex-col" style={{ minHeight: 'calc(100vh - 8rem)' }}>
+        {/* Main content - flex-grow to take available space */}
+        <main className="flex-grow flex flex-col items-center justify-center px-4 sm:px-6 text-center pt-8 pb-12 sm:pt-12 sm:pb-16">
           {/* Lottie Animation */}
           <LottieAnimation />
-          
+
           {/* Main headline */}
           <h1 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl mb-3 sm:mb-4 max-w-5xl leading-tight heading">
             <span className="text-black">Open-Source Leg</span>{" "}
@@ -40,8 +40,8 @@ export default function Home() {
           </p>
 
           {/* CTA buttons */}
-          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 mb-4 sm:mb-6">
-            <Button 
+          <div className="flex flex-col sm:flex-row gap-3 sm:gap-4">
+            <Button
               href="https://github.com/neurobionics/opensourceleg"
               target="_blank"
               rel="noopener noreferrer"
@@ -63,8 +63,9 @@ export default function Home() {
           </div>
         </main>
 
-        {/* Yellow Strip - positioned above latest article strip with same height */}
-        <div className="absolute bottom-36 sm:bottom-40 left-0 right-0 z-20">
+        {/* Bottom strips - naturally stacked at bottom */}
+        <div className="flex-shrink-0">
+          {/* Yellow Strip */}
           <div className="bg-[var(--light-green)]">
             <div className="max-w-6xl mx-auto px-4 sm:px-6">
               <div className="py-6">
@@ -72,16 +73,14 @@ export default function Home() {
               </div>
             </div>
           </div>
-        </div>
 
-        {/* Latest Article Strip - positioned at bottom of hero section */}
-        <div className="absolute bottom-24 sm:bottom-28 left-0 right-0 z-20">
+          {/* Latest Article Strip */}
           <LatestArticleStrip />
         </div>
       </div>
 
       {/* Features Section */}
-      <div className="bg-[var(--black)] text-white relative overflow-hidden -mt-24 sm:-mt-28">
+      <div className="bg-[var(--black)] text-white relative overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 min-h-[60vh] sm:h-[60vh] flex items-center">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-12 items-center w-full h-full py-16 sm:py-20 lg:py-24">
             {/* Left Content - Video */}
