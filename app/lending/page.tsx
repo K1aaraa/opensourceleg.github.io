@@ -1,639 +1,626 @@
 import { PageHero } from "@/components/page-hero"
 import { Button } from "@/components/ui/button"
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Badge } from "@/components/ui/badge"
+import Image from "next/image"
 import {
-  Accordion,
-  AccordionContent,
-  AccordionItem,
-  AccordionTrigger
-} from "@/components/ui/accordion"
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle
-} from "@/components/ui/card"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow
-} from "@/components/ui/table"
-import {
+  ArrowDown,
   ArrowRight,
+  ArrowUpRight,
   CalendarDays,
-  CheckCircle2,
   ClipboardList,
+  CreditCard,
   FileText,
-  Inbox,
-  Library,
-  LineChart,
-  MessageSquare,
+  Globe,
+  HelpCircle,
   Package,
-  ShieldCheck,
-  Users
+  Shield,
+  Truck,
+  Users,
+  Wrench,
+  Info,
 } from "lucide-react"
 
-const programDetailsInProgress = [
-  "Pricing & Deposits",
-  "Availability Calendar",
-  "Loan Agreement",
-  "Eligibility Tiers",
-  "Safety & Training Checklist",
-  "Insurance / Liability"
-]
+/**
+ * When you finalize the pending sections, delete the small "Program details in progress" strip below.
+ * NAV: If you want this under Research, place this file at: app/research/lending-program/page.tsx
+ */
 
-const whatYouGetItems = [
-  {
-    name: "Turn-key OSL hardware + batteries + charger + software image",
-    notes: "Shipped in padded flight case and ready to boot"
-  },
-  {
-    name: "Assembled knee/ankle unit(s) in flight case",
-    notes: "Pre-tested drivetrain with protective foam"
-  },
-  {
-    name: "Raspberry Pi image w/ opensourceleg SDK",
-    notes: "Robot CI-built image for fast deployment"
-  },
-  {
-    name: "Starter scripts & example controllers",
-    notes: "Bench demos plus safety interlocks"
+export const metadata = {
+  title: "Lending Program – Open-Source Leg",
+  description:
+    "Borrow a fully built Open-Source Leg (OSL) for your research. Pilot lending, training, and support designed for labs, courses, and collaborative projects.",
+}
+
+function PendingPill({ label = "Pending" }: { label?: string }) {
+  return (
+    <Badge variant="outline" className="border-black text-black bg-white">
+      {label}
+    </Badge>
+  )
+}
+
+/* ----------------------------- Availability UI ----------------------------- */
+/**
+ * Simple 12-month rolling timeline. Green = available, Gray = tentative hold, Black = booked.
+ * Replace `availabilityData` later with data pulled from a Google Sheet (created by your Google Form).
+ *
+ * HOW TO AUTOMATE LATER (quick path):
+ * 1) Build a Google Form with "Start date" and "End date".
+ * 2) Responses go to a Google Sheet.
+ * 3) Publish the Sheet to the web (CSV or JSON), or use an Apps Script to expose a JSON endpoint.
+ * 4) In Next.js, fetch that endpoint inside an API route (/api/availability) and map to {year, month, status}.
+ * 5) Replace `availabilityData` with data from your API route using a client fetch/SWR.
+ */
+
+type MonthStatus = "free" | "hold" | "booked"
+type Availability = { year: number; month: number /* 0-11 */; status: MonthStatus }
+
+function rollingTwelveMonths(): { label: string; year: number; month: number }[] {
+  const out: { label: string; year: number; month: number }[] = []
+  const start = new Date()
+  start.setDate(1)
+  for (let i = 0; i < 12; i++) {
+    const d = new Date(start.getFullYear(), start.getMonth() + i, 1)
+    out.push({ label: d.toLocaleString(undefined, { month: "short" }), year: d.getFullYear(), month: d.getMonth() })
   }
+  return out
+}
+
+// TEMP MOCK DATA (update these three lines any time)
+const availabilityData: Availability[] = [
+  // Example: mark a couple months as booked/hold to demonstrate colors
+  // { year: 2025, month: 0, status: "booked" }, // Jan 2025 booked
+  // { year: 2025, month: 1, status: "hold" },   // Feb 2025 hold
 ]
 
-const loanWindowDetails = [
-  {
-    title: "Loan window",
-    description: "Short-term research blocks with typical access of 4–8 weeks (extensions case-by-case)."
-  },
-  {
-    title: "Lead time for shipping & onboarding",
-    description: "Priority given to active research projects so we coordinate timelines for training and delivery."
-  }
-]
+function statusFor(year: number, month: number): MonthStatus {
+  return availabilityData.find((m) => m.year === year && m.month === month)?.status ?? "free"
+}
 
-const readinessSafetyChecks = [
-  "Training and checks before ship",
-  "Remote onboarding session",
-  "Bench tests & verification logs",
-  "Human-subject use requires local IRB approval"
-]
+function AvailabilityTimeline() {
+  const months = rollingTwelveMonths()
+  return (
+    <div className="space-y-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
+        {months.map((m, idx) => {
+          const st = statusFor(m.year, m.month)
+          const styles =
+            st === "free"
+              ? "bg-[var(--light-green)] text-black"
+              : st === "hold"
+              ? "bg-gray-200 text-black"
+              : "bg-[var(--black)] text-white"
+          return (
+            <div key={idx} className={`rounded-lg border border-black p-3 flex items-center justify-between ${styles}`}>
+              <div className="font-medium">{m.label}</div>
+              <div className="text-xs opacity-80">{m.year}</div>
+            </div>
+          )
+        })}
+      </div>
 
-const howItWorksSteps = [
-  {
-    title: "Request",
-    subtitle: "Project + timeline",
-    description:
-      "Share goals, environment (bench/human subject), dates, and team experience so we can match you with an available unit.",
-    icon: ClipboardList
-  },
-  {
-    title: "Review",
-    subtitle: "Safety & readiness",
-    description:
-      "We confirm training needs, IRB (if human use), and allocate an available unit while checking in on any lab requirements.",
-    icon: ShieldCheck
-  },
-  {
-    title: "Agreement",
-    subtitle: "Deposit + terms",
-    description:
-      "Sign the loan agreement, place a refundable deposit, and schedule onboarding tailored to your planned experiments.",
-    icon: FileText
-  },
-  {
-    title: "Ship & Support",
-    subtitle: "Use & return",
-    description:
-      "We ship in a padded case, support you remotely during testing, then coordinate the return shipment when your window wraps.",
-    icon: Package
-  }
-]
+      <div className="flex flex-wrap items-center gap-3 text-sm">
+        <span className="flex items-center gap-2">
+          <span className="inline-block w-3 h-3 rounded bg-[var(--light-green)] border border-black" />
+          Available
+        </span>
+        <span className="flex items-center gap-2">
+          <span className="inline-block w-3 h-3 rounded bg-gray-200 border border-black" />
+          Tentative Hold
+        </span>
+        <span className="flex items-center gap-2">
+          <span className="inline-block w-3 h-3 rounded bg-[var(--black)] border border-black" />
+          Booked
+        </span>
+      </div>
 
-const includedTable = [
-  {
-    item: "OSL knee/ankle assembly",
-    notes: "Pre-tested, configured drivetrain"
-  },
-  {
-    item: "Batteries + charger",
-    notes: "Transport-compliant packaging"
-  },
-  {
-    item: "Raspberry Pi image",
-    notes: "Robot CI-built image, opensourceleg SDK"
-  },
-  {
-    item: "Starter code & examples",
-    notes: "Bench demos, safety interlocks"
-  },
-  {
-    item: "Flight case + cables",
-    notes: "Return shipping labels provided"
-  }
-]
+      <div className="text-xs text-gray-600 flex items-start gap-2">
+        <Info className="w-4 h-4 mt-0.5" />
+        <p>
+          This is a pilot view. When your Google Form is ready, expose response dates via a Google Sheet (CSV/JSON), read
+          it in a small API route (<code>/api/availability</code>), and map any overlapping windows to the month buckets
+          shown here.
+        </p>
+      </div>
+    </div>
+  )
+}
+/* --------------------------- End Availability UI --------------------------- */
 
-const eligibilityPoints = [
-  "University labs, instructors, and independent research groups",
-  "Demonstrated bench safety & basic robotics tooling",
-  "IRB approval if involving human participants",
-  "International shipping possible (customs/regs apply)"
-]
-
-const pricingTerms = [
-  {
-    title: "Deposit",
-    status: "Refundable",
-    description:
-      "Typical model: refundable deposit to cover loss/damage; returned after inspection."
-  },
-  {
-    title: "Weekly fee",
-    status: "TBD",
-    description:
-      "Many programs use a modest weekly fee to cover wear, QA, and shipping overhead."
-  },
-  {
-    title: "Shipping",
-    status: "Actual cost",
-    description:
-      "Outbound & return shipping billed at cost; flight case provided; customs/insurance as needed."
-  }
-]
-
-const availabilitySlots = [
-  {
-    period: "June 2024",
-    status: "Hold requested",
-    notes: "Awaiting agreement signature"
-  },
-  {
-    period: "July 2024",
-    status: "Available",
-    notes: "Open for bench-only pilots"
-  },
-  {
-    period: "August 2024",
-    status: "In review",
-    notes: "Human-subject study under IRB consideration"
-  }
-]
-
-const supportResources = [
-  "Required remote onboarding (setup, safety, run-through)",
-  "Forum access for Q&A and community tips",
-  "Tutorials & docs: assembly, SDK, Robot CI",
-  "Checklists for bench tests and shut-down"
-]
-
-const faqItems = [
-  {
-    question: "Can students apply?",
-    answer:
-      "Yes—applications from student teams are welcome with a faculty advisor and a clear safety plan."
-  },
-  {
-    question: "Human-subject testing?",
-    answer:
-      "Allowed only with local IRB approval and qualified supervision. We provide device-level safety checklists; your team is responsible for protocol compliance."
-  },
-  {
-    question: "Can we modify the hardware?",
-    answer:
-      "Non-destructive changes (e.g., sensors, external fixtures) are fine if documented and reversible. Contact us first for anything invasive."
-  },
-  {
-    question: "What happens if it breaks?",
-    answer:
-      "Pause use and contact us immediately. We’ll triage remotely; repairs follow the agreement (spares, parts, or insurance may apply)."
-  }
-]
-
-const applicationLink = "https://forms.gle/YN2MMG9MqtBvgnF86"
-const interestListEmail = "mailto:opensourceleg@gmail.com?subject=OSL%20Lending%20Program%20Interest%20List"
-const availabilityLastUpdated = "April 2024"
-
-export default function LendingPage() {
+export default function LendingProgram() {
   return (
     <div className="min-h-screen pt-12">
+      {/* HERO */}
       <PageHero
         title={
           <>
-            <span className="font-semibold">OSL</span> Lending Program
+            OSL <span className="font-bold italic">Lending Program</span>
           </>
         }
-        description="Borrow a fully assembled Open-Source Leg for short-term research, teaching, or pilot studies — shipped, supported, and ready to run."
+        description="Borrow a fully assembled Open-Source Leg for medium-term research, teaching, or pilot studies — shipped, supported, and ready to run."
         primaryButton={{
           href: "#apply",
           text: "Apply to Borrow",
-          icon: <ArrowRight className="h-4 w-4" />
+          icon: <ArrowDown className="w-4 h-4 sm:w-5 sm:h-5" />,
         }}
         secondaryButton={{
-          href: "#interest",
-          text: "Join Interest List",
-          icon: <Users className="h-4 w-4" />
+          href: "#availability",
+          text: "Check Availability",
+          icon: <ArrowDown className="w-4 h-4 sm:w-5 sm:h-5" />,
         }}
       />
 
-      <section className="px-4 py-16 sm:px-6 sm:py-20 bg-[var(--light-blue)]/10">
-        <div className="mx-auto max-w-5xl space-y-8">
-          <h2 className="text-3xl font-light text-gray-900 sm:text-4xl">
-            Program details <span className="italic">in progress</span>
-          </h2>
-          <p className="text-base text-gray-600 sm:text-lg">
-            We’re finalizing the documentation that supports the pilot cohort. Expect transparent policies and downloadable references for:
-          </p>
-          <div className="grid gap-4 sm:grid-cols-2">
-            {programDetailsInProgress.map((item) => (
-              <Card key={item} className="border-black/5 bg-white">
-                <CardHeader className="flex flex-row items-center gap-3">
-                  <CheckCircle2 className="h-5 w-5 text-[var(--light-blue)]" />
-                  <CardTitle className="text-base font-semibold text-gray-900">{item}</CardTitle>
-                </CardHeader>
-              </Card>
-            ))}
+      {/* PENDING STRIP (remove later) */}
+      <div className="bg-[var(--light-green)] py-4 px-4 sm:px-6">
+        <div className="max-w-6xl mx-auto flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+          <div className="text-sm sm:text-base font-medium">Program details in progress:</div>
+          <div className="flex flex-wrap gap-2">
+            <PendingPill label="Pricing (no deposit — damages billed)" />
+            <PendingPill label="Availability Calendar" />
+            <PendingPill label="Loan Agreement" />
+            <PendingPill label="Eligibility Tiers" />
+            <PendingPill label="Safety & Training Checklist" />
+            <PendingPill label="Insurance / Liability" />
+          </div>
+        </div>
+      </div>
+
+      {/* SNAPSHOT / KEY FACTS */}
+      <section className="py-12 px-4 sm:px-6" id="snapshot">
+        <div className="max-w-6xl mx-auto grid gap-6 md:grid-cols-3">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Package className="w-5 h-5" /> What you get
+              </CardTitle>
+              <CardDescription>Turn-key OSL hardware + batteries + charger + software image</CardDescription>
+            </CardHeader>
+            <CardContent className="text-sm text-gray-700">
+              <ul className="list-disc ml-4 space-y-2">
+                <li>Assembled knee/ankle unit(s) in flight case</li>
+                <li>Raspberry Pi image w/ opensourceleg SDK</li>
+                <li>Starter scripts & example controllers</li>
+                <li>2× long aluminum pylons (cuttable) + pyramid connectors</li>
+                <li>Manual pipe cutter (for adjustable pylon length)</li>
+              </ul>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <CalendarDays className="w-5 h-5" /> Loan window
+              </CardTitle>
+              <CardDescription>Medium-term research blocks</CardDescription>
+            </CardHeader>
+            <CardContent className="text-sm text-gray-700">
+              <ul className="list-disc ml-4 space-y-2">
+                <li>Typical: <b>2–4 months</b> (extensions case-by-case)</li>
+                <li>Lead time for shipping & onboarding</li>
+                <li>Priority for active research projects</li>
+              </ul>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Shield className="w-5 h-5" /> Readiness & safety
+              </CardTitle>
+              <CardDescription>Training and checks before ship</CardDescription>
+            </CardHeader>
+            <CardContent className="text-sm text-gray-700">
+              <ul className="list-disc ml-4 space-y-2">
+                <li>Required remote onboarding session</li>
+                <li>Bench tests & verification logs</li>
+                <li>Human-subject use requires local IRB approval</li>
+              </ul>
+            </CardContent>
+          </Card>
+        </div>
+      </section>
+
+      {/* HOW IT WORKS */}
+      <section className="py-16 px-4 sm:px-6" id="how-it-works">
+        <div className="max-w-6xl mx-auto">
+          <div className="text-center mb-10">
+            <h2 className="text-3xl sm:text-4xl font-light text-gray-900">
+              How it <span className="relative font-medium italic">Works
+                <svg className="absolute -bottom-1 left-0 w-full h-2" viewBox="0 0 200 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M2 10C60 6 140 6 198 8" stroke="var(--light-blue)" strokeWidth="6" strokeLinecap="round" />
+                </svg>
+              </span>
+            </h2>
+            <p className="text-gray-600 max-w-3xl mx-auto mt-4">
+              A researcher-friendly flow from request to return: quick application, agreement, billed-if-damaged policy,
+              and structured onboarding.
+            </p>
+          </div>
+
+          <div className="grid md:grid-cols-4 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2"><ClipboardList className="w-5 h-5" /> 1) Request</CardTitle>
+                <CardDescription>Project + timeline</CardDescription>
+              </CardHeader>
+              <CardContent className="text-sm text-gray-700">
+                Share goals, environment (bench/human subject), dates, and team experience.
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2"><Shield className="w-5 h-5" /> 2) Review</CardTitle>
+                <CardDescription>Safety & readiness</CardDescription>
+              </CardHeader>
+              <CardContent className="text-sm text-gray-700">
+                We confirm training needs, IRB (if human use), and allocate an available unit.
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2"><CreditCard className="w-5 h-5" /> 3) Agreement</CardTitle>
+                <CardDescription>No deposit</CardDescription>
+              </CardHeader>
+              <CardContent className="text-sm text-gray-700">
+                Sign loan agreement. We don’t take an upfront deposit; <b>damages are billed</b> per the agreement.
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2"><Truck className="w-5 h-5" /> 4) Ship & Support</CardTitle>
+                <CardDescription>Use & return</CardDescription>
+              </CardHeader>
+              <CardContent className="text-sm text-gray-700">
+                We ship in a padded case; you run tests with our remote support, then ship back with included labels.
+              </CardContent>
+            </Card>
+          </div>
+
+          {/* Replace the removed explanatory block with a simple helper CTA */}
+          <div className="mt-8 flex justify-center">
+            <Button href="#snapshot" variant="outline" className="text-black border-black hover:bg-[var(--light-green)]">
+              Learn what’s included & what’s needed
+            </Button>
           </div>
         </div>
       </section>
 
-      <section className="px-4 py-16 sm:px-6 sm:py-20">
-        <div className="mx-auto flex max-w-6xl flex-col gap-12 lg:flex-row">
-          <div className="flex-1 space-y-6">
-            <h2 className="text-3xl font-light text-gray-900 sm:text-4xl">
-              What you get
-            </h2>
-            <p className="text-base text-gray-600 sm:text-lg">
-              Turn-key OSL hardware arrives assembled, instrumented, and loaded with the software image so you can focus on your experiments from day one.
-            </p>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead className="w-1/2 text-left">Item</TableHead>
-                  <TableHead className="text-left">Notes</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {whatYouGetItems.map((item) => (
-                  <TableRow key={item.name}>
-                    <TableCell className="font-medium text-gray-900">{item.name}</TableCell>
-                    <TableCell className="text-gray-600">{item.notes}</TableCell>
+      {/* WHAT'S INCLUDED */}
+      <section className="py-16 px-4 sm:px-6" id="included">
+        <div className="max-w-6xl mx-auto grid lg:grid-cols-2 gap-10 items-start">
+          <div>
+            <h3 className="text-2xl sm:text-3xl font-light text-gray-900 mb-4">
+              What’s <span className="relative font-medium italic">Included
+                <svg className="absolute -bottom-1 left-0 w-full h-2" viewBox="0 0 200 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M2 10C60 6 140 6 198 8" stroke="var(--light-green)" strokeWidth="6" strokeLinecap="round" />
+                </svg>
+              </span>
+            </h3>
+            <div className="bg-white rounded-2xl border border-black overflow-hidden">
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead className="font-semibold text-gray-900">Item</TableHead>
+                    <TableHead className="font-semibold text-gray-900">Notes</TableHead>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-            <div className="rounded-3xl bg-[var(--light-blue)]/10 p-6 text-sm text-gray-700">
-              Not a clinical device. Human-subject testing requires local approvals and supervision.
+                </TableHeader>
+                <TableBody>
+                  <TableRow>
+                    <TableCell>OSL knee/ankle assembly</TableCell>
+                    <TableCell>Pre-tested, configured drivetrain</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell>Batteries + charger</TableCell>
+                    <TableCell>Transport-compliant packaging</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell>Raspberry Pi image</TableCell>
+                    <TableCell>Robot CI-built image, opensourceleg SDK</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell>Starter code & examples</TableCell>
+                    <TableCell>Bench demos, safety interlocks</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell>Flight case + cables</TableCell>
+                    <TableCell>Prepaid outbound & return shipping | labels included</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell>2× long aluminum pylons + pyramids</TableCell>
+                    <TableCell>Adjustable-length pylons for configuring knee ↔ ankle or socket length</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell>Manual pipe cutter</TableCell>
+                    <TableCell>Cut aluminum pylons to length (per patient/specimen)</TableCell>
+                  </TableRow>
+                </TableBody>
+              </Table>
             </div>
-          </div>
-
-          <aside className="flex-1 space-y-6">
-            <Card className="border-black/5">
-              <CardHeader>
-                <CardTitle className="text-2xl font-semibold text-gray-900">
-                  Loan logistics
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-5 text-sm text-gray-600">
-                {loanWindowDetails.map((detail) => (
-                  <div key={detail.title}>
-                    <p className="font-semibold text-gray-900">{detail.title}</p>
-                    <p>{detail.description}</p>
-                  </div>
-                ))}
-                <div>
-                  <p className="font-semibold text-gray-900">Priority for active research projects</p>
-                  <p>
-                    Tell us about your milestones so we can coordinate shipment, onboarding, and return without interrupting your timeline.
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-            <Card className="border-black/5">
-              <CardHeader>
-                <CardTitle className="text-2xl font-semibold text-gray-900">
-                  Readiness &amp; safety
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {readinessSafetyChecks.map((check) => (
-                  <div key={check} className="flex items-start gap-3 text-sm text-gray-700">
-                    <ShieldCheck className="mt-0.5 h-4 w-4 text-[var(--light-green)]" />
-                    <span>{check}</span>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-          </aside>
-        </div>
-      </section>
-
-      <section className="bg-[var(--black)] px-4 py-16 text-white sm:px-6 sm:py-20">
-        <div className="mx-auto max-w-5xl space-y-8">
-          <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
-            <div className="space-y-4">
-              <h2 className="text-3xl font-light sm:text-4xl">
-                How it works
-              </h2>
-              <p className="text-white/80">
-                A simple researcher-friendly flow from request to return. Similar to university equipment loan pools and lab tool libraries, we use a short application, a loan agreement, a refundable deposit, and structured onboarding.
-              </p>
-            </div>
-            <div className="rounded-3xl bg-white/5 p-6 text-sm text-white/80">
-              <p className="font-semibold text-white">OSL flight case and hardware</p>
-              <p>
-                Each shipment includes protective foam, return labels, and setup documentation so your lab can start safely and ship back confidently.
-              </p>
-            </div>
-          </div>
-          <div className="grid gap-6 md:grid-cols-2">
-            {howItWorksSteps.map((step, index) => {
-              const Icon = step.icon
-              return (
-                <Card key={step.title} className="border-white/10 bg-white/5 text-left backdrop-blur">
-                  <CardHeader className="flex flex-row items-start gap-4">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-full bg-[var(--light-green)] text-black">
-                      <Icon className="h-6 w-6" strokeWidth={1.5} />
-                    </div>
-                    <div>
-                      <CardTitle className="text-xl font-semibold text-white">
-                        {index + 1}) {step.title}
-                      </CardTitle>
-                      <CardDescription className="text-white/70">
-                        {step.subtitle}
-                      </CardDescription>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-sm text-white/80">{step.description}</p>
-                  </CardContent>
-                </Card>
-              )
-            })}
-          </div>
-        </div>
-      </section>
-
-      <section className="px-4 py-16 sm:px-6 sm:py-20">
-        <div className="mx-auto max-w-5xl space-y-8">
-          <h2 className="text-3xl font-light text-gray-900 sm:text-4xl">
-            What’s included
-          </h2>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-1/3 text-left">Item</TableHead>
-                <TableHead className="text-left">Notes</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {includedTable.map((row) => (
-                <TableRow key={row.item}>
-                  <TableCell className="font-medium text-gray-900">{row.item}</TableCell>
-                  <TableCell className="text-gray-600">{row.notes}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
-      </section>
-
-      <section className="bg-[var(--light-green)]/20 px-4 py-16 sm:px-6 sm:py-20">
-        <div className="mx-auto grid max-w-6xl gap-12 lg:grid-cols-[1.1fr_1fr]">
-          <div className="space-y-6">
-            <h2 className="text-3xl font-light text-gray-900 sm:text-4xl">
-              Eligibility &amp; prioritization
-            </h2>
-            <p className="text-base text-gray-600 sm:text-lg">
-              We focus on labs and instructors who can operate safely and contribute feedback back to the community.
+            <p className="text-xs text-gray-500 mt-3">
+              Not a clinical device. Human-subject testing requires local approvals and qualified supervision.
             </p>
-            <ul className="space-y-3 text-sm text-gray-700">
-              {eligibilityPoints.map((point) => (
-                <li key={point} className="flex items-start gap-3">
-                  <Users className="mt-0.5 h-4 w-4 text-[var(--light-blue)]" />
-                  <span>{point}</span>
-                </li>
-              ))}
+          </div>
+
+          {/* Black background to showcase white-outline image (falls back nicely with photo) */}
+          <div className="relative rounded-xl overflow-hidden border-2 border-black bg-black">
+            <Image
+              src="/hardware.webp" /* swap to white-outline art if available */
+              alt="OSL flight case and hardware"
+              width={1200}
+              height={900}
+              className="w-full h-[420px] object-contain"
+              priority
+            />
+          </div>
+        </div>
+      </section>
+
+      {/* ELIGIBILITY & PRIORITIZATION */}
+      <section className="py-16 px-4 sm:px-6 bg-gray-50" id="eligibility">
+        <div className="max-w-6xl mx-auto grid lg:grid-cols-2 gap-10">
+          <div>
+            <h3 className="text-2xl sm:text-3xl font-light text-gray-900 mb-4">
+              Eligibility & <span className="relative font-medium italic">Prioritization
+                <svg className="absolute -bottom-1 left-0 w-full h-2" viewBox="0 0 200 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M2 10C60 6 140 6 198 8" stroke="var(--light-blue)" strokeWidth="6" strokeLinecap="round" />
+                </svg>
+              </span>
+            </h3>
+            <ul className="space-y-3 text-gray-700">
+              <li className="flex items-start gap-2"><Users className="w-4 h-4 mt-1" /> University labs, instructors, and independent research groups</li>
+              <li className="flex items-start gap-2"><Wrench className="w-4 h-4 mt-1" /> Demonstrated bench safety & basic robotics tooling</li>
+              <li className="flex items-start gap-2"><FileText className="w-4 h-4 mt-1" /> IRB approval if involving human participants</li>
+              <li className="flex items-start gap-2"><Globe className="w-4 h-4 mt-1" /> International shipping possible (customs/regs apply)</li>
             </ul>
-            <div className="rounded-3xl bg-white p-6 text-sm text-gray-700 shadow-sm">
-              <p className="font-semibold text-gray-900">How others do it (informing our model)</p>
-              <p>
-                Many research equipment lending programs (e.g., university tool libraries, shared instrumentation cores, and hardware developer loan programs) rely on a short application, a refundable deposit or damage waiver, scheduled loan windows, and required onboarding. We follow similar principles: clear eligibility, safety training, accountability via agreement/deposit, and active support throughout the loan.
-              </p>
+          </div>
+
+          {/* Replaced the long explanation with a simple helper button (as requested) */}
+          <div className="flex items-start">
+            <Card className="w-full">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2"><Info className="w-5 h-5" /> New to equipment loans?</CardTitle>
+                <CardDescription>See prep & safety expectations</CardDescription>
+              </CardHeader>
+              <CardContent className="text-sm text-gray-700">
+                We’ll guide you through what’s needed to get started (training, IRB if applicable, and basic bench setup).
+                <div className="mt-4">
+                  <Button href="/hardware/tutorials" variant="outline" className="text-black border-black hover:bg-[var(--light-green)]">
+                    Learn what’s needed
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      </section>
+
+      {/* PRICING & TERMS */}
+      <section className="py-16 px-4 sm:px-6" id="pricing">
+        <div className="max-w-6xl mx-auto">
+          <div className="flex items-center gap-3 mb-3">
+            <h3 className="text-2xl sm:text-3xl font-light text-gray-900">
+              Pricing & <span className="relative font-medium italic">Terms
+                <svg className="absolute -bottom-1 left-0 w-full h-2" viewBox="0 0 200 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M2 10C60 6 140 6 198 8" stroke="var(--light-green)" strokeWidth="6" strokeLinecap="round" />
+                </svg>
+              </span>
+            </h3>
+            <PendingPill />
+          </div>
+
+          <div className="grid md:grid-cols-3 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2"><CreditCard className="w-5 h-5" /> Deposit</CardTitle>
+                <CardDescription>No upfront deposit</CardDescription>
+              </CardHeader>
+              <CardContent className="text-sm text-gray-700">
+                We don’t require a deposit. Per the loan agreement, <b>damages are billed</b> after inspection and parts/labor estimate.
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2"><CalendarDays className="w-5 h-5" /> Program fee</CardTitle>
+                <CardDescription>TBD (pilot)</CardDescription>
+              </CardHeader>
+              <CardContent className="text-sm text-gray-700">
+                A modest program fee may apply to offset wear, QA, and support. Final details published with the pilot cohort.
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2"><Truck className="w-5 h-5" /> Shipping</CardTitle>
+                <CardDescription>Covered by OSL</CardDescription>
+              </CardHeader>
+              <CardContent className="text-sm text-gray-700">
+                Outbound & return shipping covered. We include labels, handle insurance, and assist with customs as needed.
+              </CardContent>
+            </Card>
+          </div>
+
+          <p className="text-xs text-gray-500 mt-4">
+            Enabled by support from the National Science Foundation (NSF). Exact amounts to be published with the pilot cohort.
+          </p>
+        </div>
+      </section>
+
+      {/* AVAILABILITY */}
+      <section className="py-16 px-4 sm:px-6 bg-gray-50" id="availability">
+        <div className="max-w-6xl mx-auto">
+          <div className="flex items-center gap-3 mb-3">
+            <h3 className="text-2xl sm:text-3xl font-light text-gray-900">
+              Availability <span className="relative font-medium italic">Timeline
+                <svg className="absolute -bottom-1 left-0 w-full h-2" viewBox="0 0 200 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M2 10C60 6 140 6 198 8" stroke="var(--light-blue)" strokeWidth="6" strokeLinecap="round" />
+                </svg>
+              </span>
+            </h3>
+            <PendingPill />
+          </div>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Next 12 months</CardTitle>
+              <CardDescription>Green = Available, Gray = Tentative Hold, Black = Booked</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <AvailabilityTimeline />
+            </CardContent>
+          </Card>
+        </div>
+      </section>
+
+      {/* SUPPORT & TRAINING */}
+      <section className="py-16 px-4 sm:px-6" id="support">
+        <div className="max-w-6xl mx-auto grid lg:grid-cols-2 gap-10 items-start">
+          <div>
+            <h3 className="text-2xl sm:text-3xl font-light text-gray-900 mb-4">
+              Support & <span className="relative font-medium italic">Training
+                <svg className="absolute -bottom-1 left-0 w-full h-2" viewBox="0 0 200 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M2 10C60 6 140 6 198 8" stroke="var(--light-green)" strokeWidth="6" strokeLinecap="round" />
+                </svg>
+              </span>
+            </h3>
+            <ul className="space-y-3 text-gray-700">
+              <li className="flex items-start gap-2"><Wrench className="w-4 h-4 mt-1" /> Required remote onboarding (setup, safety, run-through)</li>
+              <li className="flex items-start gap-2"><HelpCircle className="w-4 h-4 mt-1" /> Forum access for Q&A and community tips</li>
+              <li className="flex items-start gap-2"><FileText className="w-4 h-4 mt-1" /> Tutorials & docs: assembly, SDK, Robot CI</li>
+              <li className="flex items-start gap-2"><Shield className="w-4 h-4 mt-1" /> Checklists for bench tests and shut-down</li>
+            </ul>
+
+            <div className="mt-6 flex gap-3">
+              <Button href="/hardware/tutorials" className="bg-[var(--black)] text-white border hover:bg-[var(--light-blue)] hover:text-black">
+                Tutorials <ArrowRight className="w-4 h-4 ml-2" />
+              </Button>
+              <Button href="https://neurobionics.github.io/opensourceleg/" target="_blank" rel="noopener noreferrer" variant="outline" className="text-black border-black hover:bg-[var(--light-green)]">
+                Documentation <ArrowUpRight className="w-4 h-4 ml-2" />
+              </Button>
+              <Button href="https://opensourceleg.discourse.group/" target="_blank" rel="noopener noreferrer" variant="outline" className="text-black border-black hover:bg-[var(--light-green)]">
+                Forum <ArrowUpRight className="w-4 h-4 ml-2" />
+              </Button>
             </div>
           </div>
-          <div className="space-y-6">
-            <Card className="border-black/5">
-              <CardHeader>
-                <CardTitle className="text-2xl font-semibold text-gray-900">
-                  Pricing &amp; terms
-                </CardTitle>
-                <CardDescription className="text-sm text-gray-600">
-                  Pending details are being finalized with the pilot cohort.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-5">
-                {pricingTerms.map((item) => (
-                  <div key={item.title}>
-                    <p className="text-sm font-semibold text-gray-900">{item.title}</p>
-                    <p className="text-xs uppercase tracking-wide text-gray-500">{item.status}</p>
-                    <p className="text-sm text-gray-600">{item.description}</p>
-                  </div>
-                ))}
-                <p className="text-xs text-gray-500">
-                  Exact amounts to be published with the pilot cohort.
-                </p>
-              </CardContent>
-            </Card>
-            <Card className="border-black/5">
-              <CardHeader className="flex flex-row items-start justify-between gap-4">
-                <div>
-                  <CardTitle className="text-2xl font-semibold text-gray-900">
-                    Availability calendar
-                  </CardTitle>
-                  <CardDescription className="text-sm text-gray-600">
-                    Last updated {availabilityLastUpdated}. Update the schedule by editing the availabilitySlots array in this file.
-                  </CardDescription>
-                </div>
-                <CalendarDays className="h-8 w-8 text-[var(--light-blue)]" />
-              </CardHeader>
-              <CardContent className="space-y-4 text-sm text-gray-700">
-                {availabilitySlots.map((slot) => (
-                  <div key={slot.period} className="rounded-2xl border border-black/5 bg-white p-4">
-                    <p className="font-semibold text-gray-900">{slot.period}</p>
-                    <p className="text-xs uppercase tracking-wide text-[var(--light-blue)]">{slot.status}</p>
-                    <p>{slot.notes}</p>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
+
+          <div className="relative rounded-xl overflow-hidden border-2 border-black">
+            <Image src="/software.png" alt="OSL software and SDK support" width={1100} height={800} className="w-full h-auto object-cover" />
           </div>
         </div>
       </section>
 
-      <section className="px-4 py-16 sm:px-6 sm:py-20">
-        <div className="mx-auto max-w-5xl space-y-8">
-          <h2 className="text-3xl font-light text-gray-900 sm:text-4xl">
-            Support &amp; training
-          </h2>
-          <div className="grid gap-6 md:grid-cols-2">
-            <Card className="border-black/5">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-xl font-semibold text-gray-900">
-                  <MessageSquare className="h-5 w-5 text-[var(--light-blue)]" />
-                  Lending support
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-3 text-sm text-gray-700">
-                {supportResources.map((resource) => (
-                  <div key={resource} className="flex items-start gap-3">
-                    <CheckCircle2 className="mt-0.5 h-4 w-4 text-[var(--light-green)]" />
-                    <span>{resource}</span>
-                  </div>
-                ))}
-              </CardContent>
-            </Card>
-            <Card className="border-black/5">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-xl font-semibold text-gray-900">
-                  <Library className="h-5 w-5 text-[var(--light-blue)]" />
-                  Learning hub
-                </CardTitle>
-                <CardDescription className="text-sm text-gray-600">
-                  Dive deeper into tutorials, documentation, and the community forum.
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="flex flex-col gap-3">
-                <Button
-                  variant="outline"
-                  href="/software"
-                  className="justify-start gap-2 border-black text-black"
-                >
-                  <LineChart className="h-4 w-4" />
-                  Tutorials
-                </Button>
-                <Button
-                  variant="outline"
-                  href="https://docs.opensourceleg.com"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="justify-start gap-2 border-black text-black"
-                >
-                  <ClipboardList className="h-4 w-4" />
-                  Documentation
-                </Button>
-                <Button
-                  variant="outline"
-                  href="https://forum.opensourceleg.com"
-                  target="_blank"
-                  rel="noreferrer"
-                  className="justify-start gap-2 border-black text-black"
-                >
-                  <MessageSquare className="h-4 w-4" />
-                  Forum
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
-        </div>
-      </section>
-
-      <section id="apply" className="bg-[var(--light-blue)]/10 px-4 py-16 sm:px-6 sm:py-20">
-        <div className="mx-auto max-w-4xl space-y-6 text-center">
-          <h2 className="text-3xl font-light text-gray-900 sm:text-4xl">
-            Apply to Borrow
-          </h2>
-          <p className="text-base text-gray-600 sm:text-lg">
+      {/* APPLY / INTEREST */}
+      <section id="apply" className="py-16 px-4 sm:px-6 bg-[var(--light-blue)]">
+        <div className="max-w-5xl mx-auto text-center text-white">
+          <h3 className="text-3xl sm:text-4xl font-light">
+            Apply to <span className="relative font-medium italic">Borrow
+              <svg className="absolute -bottom-1 left-0 w-full h-2" viewBox="0 0 200 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M2 10C60 6 140 6 198 8" stroke="var(--light-green)" strokeWidth="6" strokeLinecap="round" />
+              </svg>
+            </span>
+          </h3>
+          <p className="text-white/90 max-w-3xl mx-auto mt-4">
             Tell us about your project, dates, and team. We’ll review, confirm readiness, and schedule a unit.
           </p>
-          <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
-            <Button
-              href={applicationLink}
-              target="_blank"
-              className="flex items-center gap-2 rounded-lg border border-black bg-[var(--light-green)] px-6 py-6 text-base text-black hover:bg-[var(--light-blue)]"
-            >
-              <ClipboardList className="h-5 w-5" />
-              Open Application Form
+
+          <div className="mt-8 flex flex-col sm:flex-row gap-3 justify-center">
+            {/* Replace # with your form URL when ready */}
+            <Button href="#" target="_blank" className="bg-white text-[var(--light-blue)] border border-white hover:bg-[var(--light-green)] hover:text-black">
+              Open Application Form <ArrowUpRight className="w-4 h-4 ml-2" />
             </Button>
-            <Button
-              variant="outline"
-              href="mailto:opensourceleg@gmail.com"
-              target="_blank"
-              className="flex items-center gap-2 rounded-lg border-black px-6 py-6 text-base text-black hover:bg-[var(--light-blue)]"
-            >
-              <MessageSquare className="h-5 w-5" />
-              Email the Team
+            <Button href="mailto:opensourceleg@gmail.com?subject=OSL%20Lending%20Inquiry" variant="outline" className="bg-transparent text-white border-white hover:bg-[var(--light-green)] hover:text-black">
+              Email the Team <ArrowUpRight className="w-4 h-4 ml-2" />
             </Button>
+          </div>
+
+          <div id="interest" className="mt-8 text-sm text-white/80">
+            Not ready yet? <a href="#" className="underline underline-offset-4">Join the interest list</a> to get pilot updates.
           </div>
         </div>
       </section>
 
-      <section id="interest" className="px-4 py-16 sm:px-6 sm:py-20">
-        <div className="mx-auto max-w-4xl space-y-6 text-center">
-          <h2 className="text-3xl font-light text-gray-900 sm:text-4xl">
-            Not ready yet?
-          </h2>
-          <p className="text-base text-gray-600 sm:text-lg">
-            Join the interest list to get pilot updates and be the first to know when new loan windows open.
-          </p>
-          <Button
-            href={interestListEmail}
-            className="mx-auto flex items-center gap-2 rounded-lg border border-black bg-white px-6 py-6 text-base text-black hover:bg-[var(--light-green)]"
-          >
-            <Inbox className="h-5 w-5" />
-            Join Interest List
-          </Button>
+      {/* FAQ */}
+      <section className="py-16 px-4 sm:px-6">
+        <div className="max-w-6xl mx-auto">
+          <h3 className="text-2xl sm:text-3xl font-light text-gray-900 mb-6">
+            Frequently <span className="relative font-medium italic">Asked
+              <svg className="absolute -bottom-1 left-0 w-full h-2" viewBox="0 0 200 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M2 10C60 6 140 6 198 8" stroke="var(--light-blue)" strokeWidth="6" strokeLinecap="round" />
+              </svg>
+            </span> Questions
+          </h3>
+
+          <div className="grid md:grid-cols-2 gap-6 text-gray-800">
+            <Card>
+              <CardHeader>
+                <CardTitle>Can students apply?</CardTitle>
+              </CardHeader>
+              <CardContent className="text-sm">
+                Yes—applications from student teams are welcome with a faculty advisor and a clear safety plan.
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Human-subject testing?</CardTitle>
+              </CardHeader>
+              <CardContent className="text-sm">
+                Allowed only with local IRB approval and qualified supervision. We provide device-level safety checklists; your team is responsible for protocol compliance.
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>Can we modify the hardware?</CardTitle>
+              </CardHeader>
+              <CardContent className="text-sm">
+                Non-destructive changes (e.g., sensors, external fixtures) are fine if documented and reversible. Contact us first for anything invasive.
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle>What happens if it breaks?</CardTitle>
+              </CardHeader>
+              <CardContent className="text-sm">
+                Pause use and contact us. We’ll triage remotely; repairs follow the agreement (spares, parts, or insurance may apply).
+              </CardContent>
+            </Card>
+          </div>
         </div>
       </section>
 
-      <section className="bg-[var(--black)] px-4 py-16 text-white sm:px-6 sm:py-20">
-        <div className="mx-auto max-w-5xl space-y-8">
-          <h2 className="text-3xl font-light sm:text-4xl">Frequently asked questions</h2>
-          <Accordion type="single" collapsible className="space-y-4">
-            {faqItems.map((faq) => (
-              <AccordionItem
-                key={faq.question}
-                value={faq.question}
-                className="overflow-hidden rounded-2xl border border-white/10 bg-white/5"
-              >
-                <AccordionTrigger className="px-6 text-left text-base font-semibold text-white">
-                  {faq.question}
-                </AccordionTrigger>
-                <AccordionContent className="px-6 pb-6 text-sm text-white/80">
-                  {faq.answer}
-                </AccordionContent>
-              </AccordionItem>
-            ))}
-          </Accordion>
-        </div>
-      </section>
+      {/* COMMUNITY CTA */}
+      <section className="py-16 px-4 sm:px-6 bg-gray-50">
+        <div className="max-w-6xl mx-auto grid lg:grid-cols-2 gap-10 items-center">
+          <div className="space-y-4">
+            <h3 className="text-2xl sm:text-3xl font-light text-gray-900">
+              Share your <span className="relative font-medium italic">Results
+                <svg className="absolute -bottom-1 left-0 w-full h-2" viewBox="0 0 200 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M2 10C60 6 140 6 198 8" stroke="var(--light-green)" strokeWidth="6" strokeLinecap="round" />
+                </svg>
+              </span>
+            </h3>
+            <p className="text-gray-700">
+              Publish your findings, add your paper to our research page, and swap controllers or experiment configs with the community.
+            </p>
+            <div className="flex gap-3">
+              <Button href="/research" className="bg-[var(--black)] text-white border hover:bg-[var(--light-blue)] hover:text-black">
+                Research & Publications <ArrowRight className="w-4 h-4 ml-2" />
+              </Button>
+              <Button href="https://opensourceleg.discourse.group/" target="_blank" rel="noopener noreferrer" variant="outline" className="text-black border-black hover:bg-[var(--light-green)]">
+                Join Forum <ArrowUpRight className="w-4 h-4 ml-2" />
+              </Button>
+            </div>
+          </div>
 
-      <section className="px-4 py-16 sm:px-6 sm:py-20">
-        <div className="mx-auto max-w-4xl space-y-6 text-center">
-          <h2 className="text-3xl font-light text-gray-900 sm:text-4xl">Share your results</h2>
-          <p className="text-base text-gray-600 sm:text-lg">
-            Publish your findings, add your paper to our research page, and swap controllers or experiment configs with the community.
-          </p>
-          <div className="flex flex-col items-center justify-center gap-4 sm:flex-row">
-            <Button
-              href="/research"
-              className="flex items-center gap-2 rounded-lg border border-black bg-[var(--light-blue)] px-6 py-6 text-base text-black hover:bg-[var(--light-green)]"
-            >
-              <FileText className="h-5 w-5" />
-              Research &amp; Publications
-            </Button>
-            <Button
-              variant="outline"
-              href="https://forum.opensourceleg.com"
-              target="_blank"
-              rel="noreferrer"
-              className="flex items-center gap-2 rounded-lg border-black px-6 py-6 text-base text-black hover:bg-[var(--light-blue)]"
-            >
-              <MessageSquare className="h-5 w-5" />
-              Join Forum
-            </Button>
+          <div className="relative rounded-xl overflow-hidden border-2 border-black">
+            <Image src="/community/iros.webp" alt="OSL community" width={1200} height={900} className="w-full h-auto object-cover" />
           </div>
         </div>
       </section>
