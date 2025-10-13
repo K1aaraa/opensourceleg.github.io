@@ -19,7 +19,13 @@ import {
   Truck,
   Users,
   Wrench,
+  Info,
 } from "lucide-react"
+
+/**
+ * When you finalize the pending sections, delete the small "Program details in progress" strip below.
+ * NAV: If you want this under Research, place this file at: app/research/lending-program/page.tsx
+ */
 
 export const metadata = {
   title: "Lending Program – Open-Source Leg",
@@ -35,6 +41,104 @@ function PendingPill({ label = "Pending" }: { label?: string }) {
   )
 }
 
+/* ----------------------------- Availability UI ----------------------------- */
+/**
+ * Simple 12-month rolling timeline. Green = available, Gray = tentative hold, Black = booked.
+ * Replace `availabilityData` later with data pulled from a Google Sheet (created by your Google Form).
+ *
+ * HOW TO AUTOMATE LATER (quick path):
+ * 1) Build a Google Form with "Start date" and "End date".
+ * 2) Responses go to a Google Sheet.
+ * 3) Publish the Sheet to the web (CSV or JSON), or use an Apps Script to expose a JSON endpoint.
+ * 4) In Next.js, fetch that endpoint inside an API route (/api/availability) and map to {year, month, status}.
+ * 5) Replace `availabilityData` with data from your API route using a client fetch/SWR.
+ */
+
+type MonthStatus = "free" | "hold" | "booked"
+type Availability = { year: number; month: number /* 0-11 */; status: MonthStatus }
+
+function rollingTwelveMonths(): { label: string; year: number; month: number }[] {
+  const out: { label: string; year: number; month: number }[] = []
+  const start = new Date()
+  start.setDate(1)
+  for (let i = 0; i < 12; i++) {
+    const d = new Date(start.getFullYear(), start.getMonth() + i, 1)
+    out.push({ label: d.toLocaleString(undefined, { month: "short" }), year: d.getFullYear(), month: d.getMonth() })
+  }
+  return out
+}
+
+// TEMP MOCK DATA (update these three lines any time)
+const availabilityData: Availability[] = [
+  // Example: mark a couple months as booked/hold to demonstrate colors
+  // { year: 2025, month: 0, status: "booked" }, // Jan 2025 booked
+  // { year: 2025, month: 1, status: "hold" },   // Feb 2025 hold
+]
+
+function statusFor(year: number, month: number): MonthStatus {
+  return availabilityData.find((m) => m.year === year && m.month === month)?.status ?? "free"
+}
+
+function StatusBadge({ status }: { status: MonthStatus }) {
+  const map: Record<MonthStatus, string> = {
+    free: "bg-[var(--light-green)] text-black border border-black",
+    hold: "bg-gray-300 text-black border border-black",
+    booked: "bg-[var(--black)] text-white border border-black",
+  }
+  const label = status === "free" ? "Available" : status === "hold" ? "Tentative Hold" : "Booked"
+  return <span className={`px-2 py-1 rounded text-xs ${map[status]}`}>{label}</span>
+}
+
+function AvailabilityTimeline() {
+  const months = rollingTwelveMonths()
+  return (
+    <div className="space-y-4">
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
+        {months.map((m, idx) => {
+          const st = statusFor(m.year, m.month)
+          const styles =
+            st === "free"
+              ? "bg-[var(--light-green)] text-black"
+              : st === "hold"
+              ? "bg-gray-200 text-black"
+              : "bg-[var(--black)] text-white"
+          return (
+            <div key={idx} className={`rounded-lg border border-black p-3 flex items-center justify-between ${styles}`}>
+              <div className="font-medium">{m.label}</div>
+              <div className="text-xs opacity-80">{m.year}</div>
+            </div>
+          )
+        })}
+      </div>
+
+      <div className="flex flex-wrap items-center gap-3 text-sm">
+        <span className="flex items-center gap-2">
+          <span className="inline-block w-3 h-3 rounded bg-[var(--light-green)] border border-black" />
+          Available
+        </span>
+        <span className="flex items-center gap-2">
+          <span className="inline-block w-3 h-3 rounded bg-gray-200 border border-black" />
+          Tentative Hold
+        </span>
+        <span className="flex items-center gap-2">
+          <span className="inline-block w-3 h-3 rounded bg-[var(--black)] border border-black" />
+          Booked
+        </span>
+      </div>
+
+      <div className="text-xs text-gray-600 flex items-start gap-2">
+        <Info className="w-4 h-4 mt-0.5" />
+        <p>
+          This is a pilot view. When your Google Form is ready, expose response dates via a Google Sheet (CSV/JSON),
+          read it in a small API route (<code>/api/availability</code>), and map any overlapping windows to the month
+          buckets shown here.
+        </p>
+      </div>
+    </div>
+  )
+}
+/* --------------------------- End Availability UI --------------------------- */
+
 export default function LendingProgram() {
   return (
     <div className="min-h-screen pt-12">
@@ -45,25 +149,25 @@ export default function LendingProgram() {
             OSL <span className="font-bold italic">Lending Program</span>
           </>
         }
-        description="Borrow a fully assembled Open-Source Leg for short-term research, teaching, or pilot studies — shipped, supported, and ready to run."
+        description="Borrow a fully assembled Open-Source Leg for medium-term research, teaching, or pilot studies — shipped, supported, and ready to run."
         primaryButton={{
           href: "#apply",
           text: "Apply to Borrow",
           icon: <ArrowDown className="w-4 h-4 sm:w-5 sm:h-5" />,
         }}
         secondaryButton={{
-          href: "#interest",
-          text: "Join Interest List",
+          href: "#availability",
+          text: "Check Availability",
           icon: <ArrowDown className="w-4 h-4 sm:w-5 sm:h-5" />,
         }}
       />
 
-      {/* PENDING STRIP (kept up front) */}
+      {/* PENDING STRIP (remove later) */}
       <div className="bg-[var(--light-green)] py-4 px-4 sm:px-6">
         <div className="max-w-6xl mx-auto flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
           <div className="text-sm sm:text-base font-medium">Program details in progress:</div>
           <div className="flex flex-wrap gap-2">
-            <PendingPill label="Pricing & Deposits" />
+            <PendingPill label="Pricing (no deposit — damages billed)" />
             <PendingPill label="Availability Calendar" />
             <PendingPill label="Loan Agreement" />
             <PendingPill label="Eligibility Tiers" />
@@ -74,7 +178,7 @@ export default function LendingProgram() {
       </div>
 
       {/* SNAPSHOT / KEY FACTS */}
-      <section className="py-12 px-4 sm:px-6">
+      <section className="py-12 px-4 sm:px-6" id="snapshot">
         <div className="max-w-6xl mx-auto grid gap-6 md:grid-cols-3">
           <Card>
             <CardHeader>
@@ -88,6 +192,8 @@ export default function LendingProgram() {
                 <li>Assembled knee/ankle unit(s) in flight case</li>
                 <li>Raspberry Pi image w/ opensourceleg SDK</li>
                 <li>Starter scripts & example controllers</li>
+                <li>2× long aluminum pylons (cuttable) + pyramid connectors</li>
+                <li>Manual pipe cutter (for adjustable pylon length)</li>
               </ul>
             </CardContent>
           </Card>
@@ -97,11 +203,11 @@ export default function LendingProgram() {
               <CardTitle className="flex items-center gap-2">
                 <CalendarDays className="w-5 h-5" /> Loan window
               </CardTitle>
-              <CardDescription>Short-term research blocks</CardDescription>
+              <CardDescription>Medium-term research blocks</CardDescription>
             </CardHeader>
             <CardContent className="text-sm text-gray-700">
               <ul className="list-disc ml-4 space-y-2">
-                <li>Typical: 4–8 weeks (extensions case-by-case)</li>
+                <li>Typical: <b>2–4 months</b> (extensions case-by-case)</li>
                 <li>Lead time for shipping & onboarding</li>
                 <li>Priority for active research projects</li>
               </ul>
@@ -117,7 +223,7 @@ export default function LendingProgram() {
             </CardHeader>
             <CardContent className="text-sm text-gray-700">
               <ul className="list-disc ml-4 space-y-2">
-                <li>Remote onboarding session</li>
+                <li>Required remote onboarding session</li>
                 <li>Bench tests & verification logs</li>
                 <li>Human-subject use requires local IRB approval</li>
               </ul>
@@ -127,7 +233,7 @@ export default function LendingProgram() {
       </section>
 
       {/* HOW IT WORKS */}
-      <section className="py-16 px-4 sm:px-6">
+      <section className="py-16 px-4 sm:px-6" id="how-it-works">
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-10">
             <h2 className="text-3xl sm:text-4xl font-light text-gray-900">
@@ -138,8 +244,8 @@ export default function LendingProgram() {
               </span>
             </h2>
             <p className="text-gray-600 max-w-3xl mx-auto mt-4">
-              A simple researcher-friendly flow from request to return. Similar to university equipment loan pools and lab tool libraries, we use a short application, a
-              loan agreement, a refundable deposit, and structured onboarding.
+              A researcher-friendly flow from request to return: quick application, agreement, billed-if-damaged policy,
+              and structured onboarding.
             </p>
           </div>
 
@@ -167,10 +273,10 @@ export default function LendingProgram() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2"><CreditCard className="w-5 h-5" /> 3) Agreement</CardTitle>
-                <CardDescription>Deposit + terms</CardDescription>
+                <CardDescription>No deposit</CardDescription>
               </CardHeader>
               <CardContent className="text-sm text-gray-700">
-                Sign loan agreement, place refundable deposit, and schedule onboarding.
+                Sign loan agreement. We don’t take an upfront deposit; <b>damages are billed</b> per the agreement.
               </CardContent>
             </Card>
 
@@ -180,15 +286,22 @@ export default function LendingProgram() {
                 <CardDescription>Use & return</CardDescription>
               </CardHeader>
               <CardContent className="text-sm text-gray-700">
-                We ship in a padded case; you run tests with our remote support, then ship back.
+                We ship in a padded case; you run tests with our remote support, then ship back with included labels.
               </CardContent>
             </Card>
+          </div>
+
+          {/* Replace the removed explanatory block with a simple helper CTA */}
+          <div className="mt-8 flex justify-center">
+            <Button href="#snapshot" variant="outline" className="text-black border-black hover:bg-[var(--light-green)]">
+              Learn what’s included & what’s needed
+            </Button>
           </div>
         </div>
       </section>
 
       {/* WHAT'S INCLUDED */}
-      <section className="py-16 px-4 sm:px-6">
+      <section className="py-16 px-4 sm:px-6" id="included">
         <div className="max-w-6xl mx-auto grid lg:grid-cols-2 gap-10 items-start">
           <div>
             <h3 className="text-2xl sm:text-3xl font-light text-gray-900 mb-4">
@@ -225,24 +338,40 @@ export default function LendingProgram() {
                   </TableRow>
                   <TableRow>
                     <TableCell>Flight case + cables</TableCell>
-                    <TableCell>Return shipping labels provided</TableCell>
+                    <TableCell>Prepaid outbound & return shipping | labels included</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell>2× long aluminum pylons + pyramids</TableCell>
+                    <TableCell>Adjustable-length pylons for configuring knee ↔ ankle or socket length</TableCell>
+                  </TableRow>
+                  <TableRow>
+                    <TableCell>Manual pipe cutter</TableCell>
+                    <TableCell>Cut aluminum pylons to length (per patient/specimen)</TableCell>
                   </TableRow>
                 </TableBody>
               </Table>
             </div>
             <p className="text-xs text-gray-500 mt-3">
-              Not a clinical device. Human-subject testing requires local approvals and supervision.
+              Not a clinical device. Human-subject testing requires local approvals and qualified supervision.
             </p>
           </div>
 
-          <div className="relative rounded-xl overflow-hidden border-2 border-black">
-            <Image src="/hardware.webp" alt="OSL flight case and hardware" width={1200} height={900} className="w-full h-auto object-cover" />
+          {/* Black background to showcase white-outline image (falls back nicely with photo) */}
+          <div className="relative rounded-xl overflow-hidden border-2 border-black bg-black">
+            <Image
+              src="/hardware.webp" /* swap to white-outline art if available */
+              alt="OSL flight case and hardware"
+              width={1200}
+              height={900}
+              className="w-full h-[420px] object-contain"
+              priority
+            />
           </div>
         </div>
       </section>
 
       {/* ELIGIBILITY & PRIORITIZATION */}
-      <section className="py-16 px-4 sm:px-6 bg-gray-50">
+      <section className="py-16 px-4 sm:px-6 bg-gray-50" id="eligibility">
         <div className="max-w-6xl mx-auto grid lg:grid-cols-2 gap-10">
           <div>
             <h3 className="text-2xl sm:text-3xl font-light text-gray-900 mb-4">
@@ -260,19 +389,28 @@ export default function LendingProgram() {
             </ul>
           </div>
 
-          <div>
-            <h4 className="font-semibold mb-2">How others do it (informing our model)</h4>
-            <p className="text-gray-700">
-              Many research equipment lending programs (e.g., university tool libraries, shared instrumentation cores, and hardware developer loan programs)
-              rely on a short application, a refundable deposit or damage waiver, scheduled loan windows, and required onboarding. We follow similar principles:
-              clear eligibility, safety training, accountability via agreement/deposit, and active support throughout the loan.
-            </p>
+          {/* Replaced the long explanation with a simple helper button (as requested) */}
+          <div className="flex items-start">
+            <Card className="w-full">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2"><Info className="w-5 h-5" /> New to equipment loans?</CardTitle>
+                <CardDescription>See prep & safety expectations</CardDescription>
+              </CardHeader>
+              <CardContent className="text-sm text-gray-700">
+                We’ll guide you through what’s needed to get started (training, IRB if applicable, and basic bench setup).
+                <div className="mt-4">
+                  <Button href="/hardware/tutorials" variant="outline" className="text-black border-black hover:bg-[var(--light-green)]">
+                    Learn what’s needed
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </section>
 
-      {/* PRICING & TERMS (PENDING CONTENT WITH GUIDANCE) */}
-      <section className="py-16 px-4 sm:px-6">
+      {/* PRICING & TERMS */}
+      <section className="py-16 px-4 sm:px-6" id="pricing">
         <div className="max-w-6xl mx-auto">
           <div className="flex items-center gap-3 mb-3">
             <h3 className="text-2xl sm:text-3xl font-light text-gray-900">
@@ -284,45 +422,51 @@ export default function LendingProgram() {
             </h3>
             <PendingPill />
           </div>
+
           <div className="grid md:grid-cols-3 gap-6">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2"><CreditCard className="w-5 h-5" /> Deposit</CardTitle>
-                <CardDescription>Refundable</CardDescription>
+                <CardDescription>No upfront deposit</CardDescription>
               </CardHeader>
               <CardContent className="text-sm text-gray-700">
-                Typical model: refundable deposit to cover loss/damage; returned after inspection.
+                We don’t require a deposit. Per the loan agreement, <b>damages are billed</b> after inspection and parts/labor estimate.
               </CardContent>
             </Card>
+
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2"><CalendarDays className="w-5 h-5" /> Weekly fee</CardTitle>
-                <CardDescription>TBD</CardDescription>
+                <CardTitle className="flex items-center gap-2"><CalendarDays className="w-5 h-5" /> Program fee</CardTitle>
+                <CardDescription>TBD (pilot)</CardDescription>
               </CardHeader>
               <CardContent className="text-sm text-gray-700">
-                Many programs use a modest weekly fee to cover wear, QA, and shipping overhead.
+                A modest program fee may apply to offset wear, QA, and support. Final details published with the pilot cohort.
               </CardContent>
             </Card>
+
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2"><Truck className="w-5 h-5" /> Shipping</CardTitle>
-                <CardDescription>Actual cost</CardDescription>
+                <CardDescription>Covered by OSL</CardDescription>
               </CardHeader>
               <CardContent className="text-sm text-gray-700">
-                Outbound & return shipping billed at cost; flight case provided; customs/insurance as needed.
+                Outbound & return shipping covered. We include labels, handle insurance, and assist with customs as needed.
               </CardContent>
             </Card>
           </div>
-          <p className="text-xs text-gray-500 mt-4">Exact amounts to be published with the pilot cohort.</p>
+
+          <p className="text-xs text-gray-500 mt-4">
+            Enabled by support from the National Science Foundation (NSF). Exact amounts to be published with the pilot cohort.
+          </p>
         </div>
       </section>
 
-      {/* AVAILABILITY (PENDING CALENDAR) */}
-      <section className="py-16 px-4 sm:px-6 bg-gray-50">
+      {/* AVAILABILITY */}
+      <section className="py-16 px-4 sm:px-6 bg-gray-50" id="availability">
         <div className="max-w-6xl mx-auto">
           <div className="flex items-center gap-3 mb-3">
             <h3 className="text-2xl sm:text-3xl font-light text-gray-900">
-              Availability <span className="relative font-medium italic">Calendar
+              Availability <span className="relative font-medium italic">Timeline
                 <svg className="absolute -bottom-1 left-0 w-full h-2" viewBox="0 0 200 12" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <path d="M2 10C60 6 140 6 198 8" stroke="var(--light-blue)" strokeWidth="6" strokeLinecap="round" />
                 </svg>
@@ -330,14 +474,21 @@ export default function LendingProgram() {
             </h3>
             <PendingPill />
           </div>
-          <div className="rounded-xl border border-black p-6 bg-white text-sm text-gray-700">
-            We’re finalizing unit scheduling. A public calendar with request holds and confirmed loans will appear here.
-          </div>
+
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Next 12 months</CardTitle>
+              <CardDescription>Green = Available, Gray = Tentative Hold, Black = Booked</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <AvailabilityTimeline />
+            </CardContent>
+          </Card>
         </div>
       </section>
 
       {/* SUPPORT & TRAINING */}
-      <section className="py-16 px-4 sm:px-6">
+      <section className="py-16 px-4 sm:px-6" id="support">
         <div className="max-w-6xl mx-auto grid lg:grid-cols-2 gap-10 items-start">
           <div>
             <h3 className="text-2xl sm:text-3xl font-light text-gray-900 mb-4">
@@ -447,7 +598,7 @@ export default function LendingProgram() {
                 <CardTitle>What happens if it breaks?</CardTitle>
               </CardHeader>
               <CardContent className="text-sm">
-                Pause use and contact us immediately. We’ll triage remotely; repairs follow the agreement (spares, parts, or insurance may apply).
+                Pause use and contact us. We’ll triage remotely; repairs follow the agreement (spares, parts, or insurance may apply).
               </CardContent>
             </Card>
           </div>
