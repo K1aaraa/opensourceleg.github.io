@@ -4,6 +4,7 @@ import "./globals.css";
 import Navbar from "@/components/shared/navbar";
 import Footer from "@/components/shared/footer";
 import localFont from "next/font/local";
+import Script from "next/script";
 
 export const metadata: Metadata = {
   title: "Open-Source Leg",
@@ -26,10 +27,19 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`scroll-smooth ${geist.variable} ${raveo.variable}`}>
+    <html suppressHydrationWarning lang="en" className={`scroll-smooth ${geist.variable} ${raveo.variable}`}>
       <body
         className={`${geist.className} antialiased pt-24`}
       >
+        <Script async src="https://www.googletagmanager.com/gtag/js?id=G-WPE7SZWC6R" />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-WPE7SZWC6R');
+          `}
+        </Script>
         <Navbar />
         {children}
         <Footer />
