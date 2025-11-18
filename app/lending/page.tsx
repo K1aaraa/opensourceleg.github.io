@@ -1,9 +1,10 @@
-import { PageHero } from "@/components/page-hero"
+﻿import { PageHero } from "@/components/page-hero"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { Badge } from "@/components/ui/badge"
 import Image from "next/image"
+import AvailabilityTimelineClient from "@/components/availability-timeline-client"
 import {
   ArrowDown,
   ArrowRight,
@@ -14,7 +15,6 @@ import {
   FileText,
   Globe,
   HelpCircle,
-  Package,
   Shield,
   Truck,
   Users,
@@ -68,15 +68,12 @@ function rollingTwelveMonths(): { label: string; year: number; month: number }[]
   return out
 }
 
-// TEMP MOCK DATA (update these three lines any time)
-const availabilityData: Availability[] = [
-  // Example: mark a couple months as booked/hold to demonstrate colors
-  // { year: 2025, month: 0, status: "booked" }, // Jan 2025 booked
-  // { year: 2025, month: 1, status: "hold" },   // Feb 2025 hold
-]
+// Source for availability (published Google Sheet CSV)
+const SHEET_CSV_URL =
+  "https://docs.google.com/spreadsheets/d/e/2PACX-1vRTBbZKmMVI_bm6FLVrXy16Q2g53F7EETvJtNcgZY3BOULHP70-HsUMduFtbqiAF2-g1hA1TiFd1vkh/pub?gid=1501458809&single=true&output=csv"
 
-function statusFor(year: number, month: number): MonthStatus {
-  return availabilityData.find((m) => m.year === year && m.month === month)?.status ?? "free"
+function statusFor(year: number, month: number, availability: Availability[]): MonthStatus {
+  return availability.find((m) => m.year === year && m.month === month)?.status ?? "free"
 }
 
 function StatusBadge({ status }: { status: MonthStatus }) {
@@ -89,13 +86,13 @@ function StatusBadge({ status }: { status: MonthStatus }) {
   return <span className={`px-2 py-1 rounded text-xs ${map[status]}`}>{label}</span>
 }
 
-function AvailabilityTimeline() {
+function AvailabilityTimeline({ availability }: { availability: Availability[] }) {
   const months = rollingTwelveMonths()
   return (
     <div className="space-y-4">
       <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2">
         {months.map((m, idx) => {
-          const st = statusFor(m.year, m.month)
+          const st = statusFor(m.year, m.month, availability)
           const styles =
             st === "free"
               ? "bg-[var(--light-green)] text-black"
@@ -177,61 +174,6 @@ export default function LendingProgram() {
         </div>
       </div>
 
-      {/* SNAPSHOT / KEY FACTS */}
-      <section className="py-12 px-4 sm:px-6" id="snapshot">
-        <div className="max-w-6xl mx-auto grid gap-6 md:grid-cols-3">
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Package className="w-5 h-5" /> What you get
-              </CardTitle>
-              <CardDescription>Turn-key OSL hardware + batteries + charger + software image</CardDescription>
-            </CardHeader>
-            <CardContent className="text-sm text-gray-700">
-              <ul className="list-disc ml-4 space-y-2">
-                <li>Assembled knee/ankle unit(s) in flight case</li>
-                <li>Raspberry Pi image w/ opensourceleg SDK</li>
-                <li>Starter scripts & example controllers</li>
-                <li>2× long aluminum pylons (cuttable) + pyramid connectors</li>
-                <li>Manual pipe cutter (for adjustable pylon length)</li>
-              </ul>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <CalendarDays className="w-5 h-5" /> Loan window
-              </CardTitle>
-              <CardDescription>Medium-term research blocks</CardDescription>
-            </CardHeader>
-            <CardContent className="text-sm text-gray-700">
-              <ul className="list-disc ml-4 space-y-2">
-                <li>Typical: <b>2–4 months</b> (extensions case-by-case)</li>
-                <li>Lead time for shipping & onboarding</li>
-                <li>Priority for active research projects</li>
-              </ul>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Shield className="w-5 h-5" /> Readiness & safety
-              </CardTitle>
-              <CardDescription>Training and checks before ship</CardDescription>
-            </CardHeader>
-            <CardContent className="text-sm text-gray-700">
-              <ul className="list-disc ml-4 space-y-2">
-                <li>Required remote onboarding session</li>
-                <li>Bench tests & verification logs</li>
-                <li>Human-subject use requires local IRB approval</li>
-              </ul>
-            </CardContent>
-          </Card>
-        </div>
-      </section>
-
       {/* HOW IT WORKS */}
       <section className="py-16 px-4 sm:px-6" id="how-it-works">
         <div className="max-w-6xl mx-auto">
@@ -291,12 +233,6 @@ export default function LendingProgram() {
             </Card>
           </div>
 
-          {/* Replace the removed explanatory block with a simple helper CTA */}
-          <div className="mt-8 flex justify-center">
-            <Button href="#snapshot" variant="outline" className="text-black border-black hover:bg-[var(--light-green)]">
-              Learn what’s included & what’s needed
-            </Button>
-          </div>
         </div>
       </section>
 
@@ -399,8 +335,14 @@ export default function LendingProgram() {
               <CardContent className="text-sm text-gray-700">
                 We’ll guide you through what’s needed to get started (training, IRB if applicable, and basic bench setup).
                 <div className="mt-4">
-                  <Button href="/hardware/tutorials" variant="outline" className="text-black border-black hover:bg-[var(--light-green)]">
-                    Learn what’s needed
+                  <Button
+                    href="https://opensourceleg.discourse.group/t/osl-lending-program-requirements/157"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    variant="outline"
+                    className="text-black border-black hover:bg-[var(--light-green)]"
+                  >
+                    Learn what's needed
                   </Button>
                 </div>
               </CardContent>
@@ -453,6 +395,40 @@ export default function LendingProgram() {
                 Outbound & return shipping covered. We include labels, handle insurance, and assist with customs as needed.
               </CardContent>
             </Card>
+
+            <div className="md:col-span-3 flex flex-col md:flex-row md:justify-center gap-6">
+              <Card className="md:flex-1 md:max-w-md">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <CalendarDays className="w-5 h-5" /> Loan window
+                  </CardTitle>
+                  <CardDescription>Medium-term research blocks</CardDescription>
+                </CardHeader>
+                <CardContent className="text-sm text-gray-700">
+                  <ul className="list-disc ml-4 space-y-2">
+                    <li>Typical: <b>2-4 months</b> (extensions case-by-case)</li>
+                    <li>Lead time for shipping & onboarding</li>
+                    <li>Priority for active research projects</li>
+                  </ul>
+                </CardContent>
+              </Card>
+
+              <Card className="md:flex-1 md:max-w-md">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Shield className="w-5 h-5" /> Readiness & safety
+                  </CardTitle>
+                  <CardDescription>Training and checks before ship</CardDescription>
+                </CardHeader>
+                <CardContent className="text-sm text-gray-700">
+                  <ul className="list-disc ml-4 space-y-2">
+                    <li>Required remote onboarding session</li>
+                    <li>Bench tests & verification logs</li>
+                    <li>Human-subject use requires local IRB approval</li>
+                  </ul>
+                </CardContent>
+              </Card>
+            </div>
           </div>
 
           <p className="text-xs text-gray-500 mt-4">
@@ -478,10 +454,9 @@ export default function LendingProgram() {
           <Card>
             <CardHeader>
               <CardTitle className="text-lg">Next 12 months</CardTitle>
-              <CardDescription>Green = Available, Gray = Tentative Hold, Black = Booked</CardDescription>
             </CardHeader>
             <CardContent>
-              <AvailabilityTimeline />
+              <AvailabilityTimelineClient sheetUrl={SHEET_CSV_URL} />
             </CardContent>
           </Card>
         </div>
@@ -540,7 +515,7 @@ export default function LendingProgram() {
 
           <div className="mt-8 flex flex-col sm:flex-row gap-3 justify-center">
             {/* Replace # with your form URL when ready */}
-            <Button href="#" target="_blank" className="bg-white text-[var(--light-blue)] border border-white hover:bg-[var(--light-green)] hover:text-black">
+            <Button href="https://docs.google.com/forms/d/e/1FAIpQLSeaq-64_nynM7e6XX0fHaXXhXb7DZ1eeHb83ZuQlaUZlv3rWw/viewform?usp=dialog" target="_blank" className="bg-white text-[var(--light-blue)] border border-white hover:bg-[var(--light-green)] hover:text-black">
               Open Application Form <ArrowUpRight className="w-4 h-4 ml-2" />
             </Button>
             <Button href="mailto:opensourceleg@gmail.com?subject=OSL%20Lending%20Inquiry" variant="outline" className="bg-transparent text-white border-white hover:bg-[var(--light-green)] hover:text-black">
@@ -549,7 +524,7 @@ export default function LendingProgram() {
           </div>
 
           <div id="interest" className="mt-8 text-sm text-white/80">
-            Not ready yet? <a href="#" className="underline underline-offset-4">Join the interest list</a> to get pilot updates.
+            Not ready yet? <a href="https://docs.google.com/forms/d/e/1FAIpQLSdUjIARhoKmcGuQu04T5ByS1ISqbtXunV4wYceclNlLFBR9gQ/viewform?usp=dialog" target="_blank" rel="noopener noreferrer" className="underline underline-offset-4">Join the interest list</a> to get pilot updates.
           </div>
         </div>
       </section>
@@ -637,3 +612,4 @@ export default function LendingProgram() {
     </div>
   )
 }
+
