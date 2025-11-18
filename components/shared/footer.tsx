@@ -72,26 +72,24 @@ export default function Footer() {
     <footer className="bg-background border-t border-border mt-20">
       <div className="max-w-7xl mx-auto px-4 py-8 md:py-12">
         {/* Main Footer Content */}
-        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8 mb-6 md:mb-8 lg:max-w-5xl lg:mx-auto">
-          {footerSections.map((section) => (
-            <div key={section.title} className="flex flex-col items-center">
-                <div className="flex flex-col">
-                    <h3 className="font-medium text-foreground mb-2 md:mb-3 text-sm">
-                        {section.title}
-                    </h3>
-                    <ul className="space-y-1 md:space-y-2 text-left">
-                        {section.links.map((link) => (
-                        <li key={link.title}>
-                            <Link 
-                            href={link.href}
-                            className="text-muted-foreground hover:text-foreground hover:underline transition-all text-xs block"
-                            >
-                            {link.title}
-                            </Link>
-                        </li>
-                        ))}
-                    </ul>
-                </div>
+        <div className="grid grid-cols-2 md:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8 mb-6 md:mb-8 max-w-lg md:max-w-xl lg:max-w-5xl mx-auto">
+          {footerSections.map((section, index) => (
+            <div key={section.title} className={`flex flex-col ${index % 2 === 1 ? 'items-end lg:items-start' : ''}`}>
+                <h3 className="font-medium text-foreground mb-2 md:mb-3 text-sm">
+                    {section.title}
+                </h3>
+                <ul className={`space-y-1 md:space-y-2 ${index % 2 === 1 ? 'text-right lg:text-left' : ''}`}>
+                    {section.links.map((link) => (
+                    <li key={link.title}>
+                        <Link 
+                        href={link.href}
+                        className="text-muted-foreground hover:text-foreground hover:underline transition-all text-xs block"
+                        >
+                        {link.title}
+                        </Link>
+                    </li>
+                    ))}
+                </ul>
             </div>
           ))}
         </div>
